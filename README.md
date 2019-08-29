@@ -1,7 +1,7 @@
 # StainColorQualityControl
 
 ## Introduction
-This file contains descriptions and code samples of a Visual Basic application I built for a cabinet manufacturer to help them maintain consistency in their stain colors with other component manufacturers. It maintained a library of hundreds of stain colors spanning multiple years. It imported readings taken from a spectrophotometer and compared them to a standard in order to keep production on track. It was important to allow for considerable variation as naturally occurs in products like wood. Therefore a standard was actually a collection of separate readings which met certain statistical requirements.
+This file contains descriptions and code samples of a Visual Basic Windows application I built for a cabinet manufacturer to help them maintain consistency in their stain colors with other component manufacturers. It maintained a library of hundreds of stain colors spanning multiple years. It imported readings taken from a spectrophotometer and compared them to a standard in order to keep production on track. It was important to allow for considerable variation as naturally occurs in products like wood. Therefore a standard was actually a collection of separate readings which met certain statistical requirements.
 
 ## My Role
 I was the sole developer of this project and worked on it, off-and-on along with other manufacturing systems for the same company, for about five years or so. In this capacity, not only did I write the code for this project, I also identified the need, engineered the solution, gathered the necessary equipment (spectrophotometers), and implemented the solution.
@@ -335,24 +335,7 @@ The following two routines are examples of a collection of routines that helped 
     End Sub
 
 ## Reading Class
-Instances of this class represent a spectrophotometer reading. The class contains a helper function to compute the root mean squares (RMS) in reference to a "nearby" standard reading. Because a standard was a collection of readings, it was necessary to transform each reading in a trial to its nearest reading in the standard before computing any deviation. Therefore, this class also contains several methods to transform a reading to a position where it could best be compared to the standard. Dealing with all of this variation is what set this method of QC'ing parts ahead of other methods.
-
-    Option Explicit
-
-    Public ColorName As String
-    Public ColorDate As String
-    Public Reading As String
-    Public desc As String
-    Public Mode As String
-    Public StartLambda As Double
-    Public DeltaLambda As Double
-    Public Pts As Collection 'of double wrapper
-    Public Flag As Boolean 'used to mark this reading for removal from the current standard
-    Public Format As SeriesFormat
-    Public PtFormat As SeriesFormat
-    Public LineSeries As Series
-    Public weight As Double
-    Public Index As Integer
+Instances of this class represent a spectrophotometer reading. The class contains a helper function to compute the root mean squares (RMS) in reference to a "nearby" standard reading. Because a standard was a collection of readings, it was necessary to transform each reading in a trial to its nearest reading in the standard before computing any deviation. Therefore, this class also contains several methods to transform a reading to a position where it could best be compared to the standard. Dealing with all of this variation is what set this method of QC'ing parts ahead of other methods. This class has been condensed by removing some of the more mundane methods.
 
     Public Function Copy() As Reading
         Dim r As New Reading
@@ -380,106 +363,7 @@ Instances of this class represent a spectrophotometer reading. The class contain
         End With
         Set Copy = r
     End Function
-
-    Public Sub TrimPts(ByVal LowLambda As Long, ByVal HighLambda As Long)
-        Dim ll As Long, hl As Long
-        ll = StartLambda
-        hl = ll + (Pts.Count - 1) * DeltaLambda
-        Dim k As Integer
-        For k = 1 To (LowLambda - ll) \ DeltaLambda
-            Pts.Remove (1)
-            StartLambda = StartLambda + DeltaLambda
-        Next k
-        Dim n As Integer
-        n = Pts.Count
-        For k = 1 To (hl - HighLambda) \ DeltaLambda
-            Pts.Remove (n)
-            n = n - 1
-        Next k
-    End Sub
-
-    Public Sub ClearPts()
-        Set Pts = Nothing
-        Set Pts = New Collection
-    End Sub
-    Public Sub SetSeries(Line As Series)
-        Set LineSeries = Line
-        With LineSeries
-            .Smooth = True
-            .MarkerStyle = Format.MarkerStyle
-            If .MarkerStyle <> xlMarkerStyleNone Then
-                .MarkerForegroundColor = Format.MarkerForegroundColor
-                .MarkerBackgroundColor = Format.MarkerBackgroundColor
-                .MarkerSize = Format.MarkerSize
-            End If
-            With .Border
-                .Color = Format.BorderColor
-                .weight = Format.BorderWeight
-            End With
-        End With
-    End Sub
-
-    Public Sub FillHeaderFromRange(ByVal cell As Range)
-        'fills the header from a single row starting at "cell"
-        ColorName = cell.offset(0, 0).Value2
-        ColorDate = cell.offset(0, 1).Value2
-        Reading = cell.offset(0, 2).Value2
-        desc = cell.offset(0, 3).Value2
-        Mode = cell.offset(0, 4).Value2
-    End Sub
-
-    Public Sub FillPartHeaderFromRange(ByVal cell As Range)
-        'fills the header from a single row starting at "cell"
-        Reading = cell.offset(0, 0).Value2
-        desc = cell.offset(0, 1).Value2
-        Mode = cell.offset(0, 2).Value2
-    End Sub
-
-    Public Sub PlaceHeaderInRange(ByVal cell As Range)
-        cell.offset(0, 0).Value = ColorName
-        cell.offset(0, 1).Value = ColorDate
-        cell.offset(0, 2).Value = Reading
-        cell.offset(0, 3).Value = desc
-        cell.offset(0, 4).Value = Mode
-    End Sub
-
-    Public Sub PlacePartHeaderInRange(ByVal cell As Range)
-        cell.offset(0, 0).Value = Reading
-        cell.offset(0, 1).Value = desc
-        cell.offset(0, 2).Value = Mode
-    End Sub
-
-    Public Sub FillPtsFromRange(ByVal cell As Range, ByVal n As Integer)
-        'fills the collection of points from a single row starting at "cell", n cells wide.
-        Dim i As Integer
-        Dim d As Dbl
-        Set Pts = New Collection
-        For i = 1 To n
-            Set d = New Dbl
-            d.d = cell.Value
-            Pts.Add d
-            Set cell = cell.offset(0, 1)
-        Next i
-    End Sub
-
-    Public Sub PlacePtsInRange(ByVal cell As Range)
-            'fills the collection of points from a single row starting at "cell", n cells wide.
-        Dim i As Integer
-        For i = 1 To Pts.Count
-            cell.Value = Pts(i).d
-            Set cell = cell.offset(0, 1)
-        Next i
-    End Sub
-
-    Public Sub PlacePartPtsInRange(ByVal cell As Range, ByVal nOffEnds As Integer)
-        'fills the collection of points from a single row starting at "cell", n cells wide.
-        Dim i As Integer
-        For i = 1 + nOffEnds To Pts.Count - nOffEnds
-            cell.Value = Pts(i).d
-            Set cell = cell.offset(0, 1)
-        Next i
-    End Sub
-
+    
     Public Function MeanDifference(ByVal Other As Reading) As Double
         Dim rv As Double
         rv = 0
@@ -661,46 +545,278 @@ Instances of this class represent a spectrophotometer reading. The class contain
         Next k
     End Sub
 
-    Public Function SameDim(ByVal Other As Reading) As Boolean
-        If Other.Pts.Count <> Pts.Count Or Other.StartLambda <> StartLambda Or Other.DeltaLambda <> DeltaLambda Then
-            SameDim = False
-        Else
-            SameDim = True
-        End If
+## ReadingSet Class
+Instances of this class represent a collection of spectrophotometer readings such as a standard or a collection of readings used to create a standard. The class contains statistical functions for computing the "average" reading and the standard deviation of the collection about a reference reading such as the average. It also contains helper functions such as locating the "nearest" reading to a reference reading for the purposes of transforming a trial reading to its nearest reading in the standard, as described in [Reading Class](#reading-class). Finally, because it was difficult to get readings from a natural product like wood that were somewhat equally distributed from light to dark, this class contains a function to generate a "Frame" of computed readings for the purpose of filling in gaps in the standard. This class has been condensed by removing some of the more mundane methods.
+
+    Public Readings As Collection 'of reading
+
+    Public Function Copy() As ReadingSet
+        Dim RS As New ReadingSet
+        With RS
+            Dim k As Integer
+            Dim r As Reading
+            For k = 1 To Readings.Count
+                Set r = Readings(k)
+                .Readings.Add r.Copy
+            Next k
+        End With
+        Set Copy = RS
     End Function
 
-    Public Sub SetNumPts(ByVal n As Integer)
-        Set Pts = Nothing
-        Set Pts = New Collection
-        Dim i As Integer
-        Dim d As Dbl
-        For i = 1 To n
-            Set d = New Dbl
-            Pts.Add d
+    Public Function Average() As Reading
+        'returns a new "reading" that is the average of the collection
+        If Not AllSameDim Then
+            Err.Raise 2000, "Readings.Average", "Not all readings have the same dimension"
+        End If
+        Dim i As Integer, j As Integer
+        Dim r1 As Reading, r2 As Reading
+        Set r1 = Readings(1)
+        Dim rv As New Reading
+        Dim n As Integer
+        n = r1.Pts.Count
+        rv.SetNumPts (n)
+        Dim m As Integer
+        m = Readings.Count
+        For i = 1 To m
+            Set r2 = Readings(i)
+            For j = 1 To n
+                rv.Pts(j).d = rv.Pts(j).d + r2.Pts(j).d
+            Next j
         Next i
+        For j = 1 To n
+            rv.Pts(j).d = rv.Pts(j).d / m
+        Next j
+        Set Average = rv
+    End Function
+
+    Public Function StdDevRMS(about As Reading) As Double
+        'returns the standard deviation of the root mean squares of the collection relative to the "about" reading
+        Dim rmss As New Collection
+        Dim i As Integer
+        Dim m As Integer
+        m = Readings.Count
+        For i = 1 To m
+            rmss.Add about.RootMeanSquares(Readings(i))
+        Next i
+        Dim arms As Double
+        arms = 0
+        For i = 1 To m
+            arms = arms + rmss(i)
+        Next i
+        arms = arms / m
+        Dim rv As Double
+        rv = 0
+        For i = 1 To m
+            rv = rv + (rmss(i) - arms) ^ 2
+        Next i
+        rv = Sqr(rv / (m - 1))
+        StdDevRMS = rv
+    End Function
+
+    Public Function IndicesOfNearest(ByVal RefReading As Reading, ByVal n As Integer) As Collection
+        'returns a collection of n index-rms pairs of those readings which are closest to "RefReading"
+        'the first in the list is the closest, etc.
+        'this algorithm is O(n^2), coded for ease of programming, not speed
+        Dim m As Integer
+        m = Readings.Count
+        If m < n Then
+            Err.Raise 2000, "IndicesOfNearest", "The number of indices requested exceeds the size of the collection."
+        End If
+        If n < 1 Then
+            Err.Raise 2000, "IndicesOfNearest", "Must return at least one index."
+        End If
+        Dim i As Integer, j As Integer
+        Dim RMS As Double
+        Dim rmss As New Collection
+        Dim Inserted As Boolean
+        Dim r As Reading
+        Set r = Readings(1)
+        Dim di As New DblInt
+        di.d = RefReading.RootMeanSquares(r)
+        di.i = 1
+        rmss.Add di
+        For i = 2 To n 'inserts the first n readings in order
+            Set r = Readings(i)
+            RMS = RefReading.RootMeanSquares(r)
+            Set di = New DblInt
+            di.d = RMS
+            di.i = i
+            Inserted = False
+            For j = 1 To i - 1
+                If RMS < rmss(j).d Then
+                    rmss.Add Item:=di, before:=j
+                    Inserted = True
+                    Exit For
+                End If
+            Next j
+            If Not Inserted Then
+                rmss.Add di
+            End If
+        Next i
+        For i = n + 1 To m 'inserts only closer readings, does it in order
+            Set r = Readings(i)
+            RMS = RefReading.RootMeanSquares(r)
+            For j = 1 To n
+                If RMS < rmss.Item(j).d Then
+                    Set di = New DblInt
+                    di.d = RMS
+                    di.i = i
+                    rmss.Add Item:=di, before:=j
+                    rmss.Remove (n + 1)
+                    Exit For
+                End If
+            Next j
+        Next i
+        Set IndicesOfNearest = rmss
+    End Function
+
+    Public Sub Compare(ByVal Other As ReadingSet, ByRef MeanRMS As Double, ByRef MeanDiff As Double)
+        'Compares Other to the current readigings using the current as the standard
+        Dim n As Integer
+        n = Other.Readings.Count
+        ''' ERROR CHECKING
+        If n < 1 Then
+            Err.Raise 2000, "ReadingSet.Compare", "There must be at least one trial reading"
+        End If
+        Dim m As Integer
+        m = Readings.Count
+        If m < 1 Then
+            Err.Raise 2001, "ReadingSet.Compare", "There must be at least one standard reading"
+        End If
+        If Not SameDim(Other) Then
+            Err.Raise 2002, "ReadingSet.Compare", "The dimensions of some readings do not match"
+        End If
+
+        Dim rtrial As Reading, rstd As Reading
+        Dim rtstd As New Reading 'the transformed std reading
+        Dim rttrial As New Reading 'the transformed trial reading
+        Set rstd = Readings(1)
+        Set rtrial = Other.Readings(1)
+        rtstd.SetDimSameAs Other:=rstd
+        rttrial.SetDimSameAs Other:=rstd
+        Dim i As Integer, j As Integer, k As Integer
+        Dim npts As Integer
+        npts = rstd.Pts.Count
+        Dim Nearest As Collection 'of DblInt, the RMS as Double and the Index as Integer
+        Dim x As Double
+        Dim nn As Integer 'number of nearest neighbors
+        If m < 3 Then nn = m Else nn = 3
+        Dim trms As Double, ttrms As Double 'total rms, temp total rms
+        Dim tweight As Double 'total of weights = 1/1 + 1/2 + 1/3 + ... + 1/nn
+        tweight = 0
+        For j = 1 To nn
+            tweight = weight + (1 / j)
+        Next j
+        trms = 0
+        For i = 1 To n
+            Set rtrial = Other.Readings(i)
+            Set Nearest = Me.IndicesOfNearest(rtrial, nn)
+            ttrms = 0
+            For j = 1 To nn
+                Set rstd = Readings(Nearest(j).i)
+                ttrms = ttrms + rstd.Compare(rtrial) / j
+            Next j
+            trms = trms + ttrms / tweight
+        Next i
+        MeanRMS = trms / n
+        MeanDiff = Me.Average.MeanDifference(Other.Average)
     End Sub
 
-    Public Sub SetDimSameAs(ByVal Other As Reading)
-        StartLambda = Other.StartLambda
-        DeltaLambda = Other.DeltaLambda
-        SetNumPts (Other.Pts.Count)
-    End Sub
+    Public Function Frame(ByVal Num As Integer, ByVal Mode As String) As ReadingSet
+        If Not AllSameDim Then
+            Err.Raise 2000, "Frame", "Not all readings have the same dimension"
+        End If
+        Dim FrameSet As New ReadingSet
+        Dim i As Integer, j As Integer, k As Integer, kk As Integer
+        Dim n As Integer, npts As Integer
+        n = Readings.Count
+        If Num > n Then
+            Err.Raise 2001, "Frame", "Can't return more readings than there are in the original set."
+        End If
+        Dim white As New Reading
+        white.SetDimSameAs Readings(1)
+        npts = white.Pts.Count
+        For j = 1 To npts
+            white.Pts(j).d = 200 'beaming white
+        Next j
+        Dim rw As New Reading
+        With rw
+            .SetDimSameAs white
+            .ColorName = "Frame"
+            .ColorDate = "Frame"
+            .desc = "Calculated"
+            .Mode = Mode
+            .Format.BorderColor = RGB(128, 32, 32)
+            .Format.BorderWeight = xlThick
+        End With
+        Dim rt As New Reading
+        rt.SetDimSameAs white
+        Dim rwt As Reading, r As Reading
+        Dim Nearest As Collection
+        Set Nearest = IndicesOfNearest(white, n)
+        Dim Weights As New Collection
+        Dim SumWeights As New Collection
+        Dim weight As Double
+        Dim TotalWeight As Double, TargetWeight As Double, fWeight As Double
+        TotalWeight = 0
+        Dim d As Dbl
+        For k = 1 To n
+            weight = Readings(Nearest(k).i).weight
+            TotalWeight = TotalWeight + weight
+            Set d = New Dbl
+            Weights.Add d
+            Set d = New Dbl
+            SumWeights.Add d
+        Next k
+        TargetWeight = (TotalWeight / Num)
+        Dim Proceed As Boolean
+        Dim i1 As Integer, i2 As Integer, kold As Integer
+        kk = 1
+        k = 1
+        Do
+            For j = 1 To npts
+                rw.Pts(j).d = 0
+            Next j
+            fWeight = 0
+            i1 = k
+            i2 = k
+            Proceed = False
+            Do
+                Set r = Readings(Nearest(k).i)
+                weight = r.weight - SumWeights(k).d
+                fWeight = fWeight + weight
+                kold = k
+                If fWeight < TargetWeight Then
+                    If k < n Then
+                        k = k + 1
+                        i2 = k
+                    Else
+                        Proceed = True
+                    End If
+                Else
+                    Proceed = True
+                    If fWeight > TargetWeight Then
+                        weight = weight - (fWeight - TargetWeight)
+                        fWeight = TargetWeight
+                    Else
+                        k = k + 1
+                    End If
+                End If
+                SumWeights(kold).d = SumWeights(kold).d + weight
+                Weights(kold).d = weight
+                For j = 1 To npts
+                    rw.Pts(j).d = rw.Pts(j).d + weight * r.Pts(j).d
+                Next j
+            Loop Until Proceed
 
-    Private Sub Class_Initialize()
-        ColorName = ""
-        ColorDate = ""
-        Reading = ""
-        desc = ""
-        Mode = ""
-        StartLambda = 360
-        DeltaLambda = 10
-        Flag = False
-        weight = 1
-        Index = 0
-        Set Pts = New Collection
-        Set Format = New SeriesFormat
-        Set PtFormat = New SeriesFormat
-    End Sub
-
-## ReadingSet Class
-Instances of this class represent a collection of spectrophotometer readings such as a standard or a collection of readings used to create a standard.
+            With rw
+                For j = 1 To npts
+                    .Pts(j).d = .Pts(j).d / fWeight
+                Next j
+                .Reading = kk
+            End With
+            FrameSet.Readings.Add rw.Copy
+            kk = kk + 1
+        Loop Until kk = Num + 1
+        Set Frame = FrameSet
+    End Function
