@@ -1,10 +1,10 @@
 # StainColorQualityControl
 
 ## Introduction
-This file contains descriptions and code samples of a Visual Basic Windows application I built for a cabinet manufacturer to help them maintain consistency in their stain colors with other component manufacturers. It maintained a library of hundreds of stain colors spanning multiple years. It imported readings taken from a spectrophotometer and compared them to a standard in order to keep production on track. It was important to allow for considerable variation as naturally occurs in products like wood. Therefore a standard was actually a collection of separate readings which met certain statistical requirements.
+This file contains descriptions and code samples of a Visual Basic Windows application I built for a cabinet manufacturer based in Arizona to help them maintain consistency in their stain colors with other component manufacturers. The application maintained a library of hundreds of stain colors spanning multiple years. It imported readings taken from a spectrophotometer and compared them to a standard in order to keep production on track. It was important to allow for considerable variation as naturally occurs in products like wood. Therefore a standard was actually a collection of separate readings which met certain statistical requirements.
 
 ## My Role
-I was the sole developer of this project and worked on it, off-and-on along with other manufacturing systems for the same company, for about five years or so. In this capacity, not only did I write the code for this project, I also identified the need, engineered the solution, gathered the necessary equipment (spectrophotometers), and implemented the solution.
+I was the sole developer of this project and worked on it, off-and-on along with several other manufacturing systems for the same company, for about five years or so. In this capacity, not only did I write the code for this project, I also identified the need, engineered the solution, gathered the necessary equipment (spectrophotometers), and implemented the solution.
 
 ## Contents
 Sample Components
@@ -17,6 +17,8 @@ Sample Components
 
 ## Routine to Build Chart for Comparing Current Trial to Standard
 This routine retrieves a trial reading from the spectrophotometer (a collection of reflectance percentages vs. wavelengths of light). It then retrieves the standard from a database of historical data and displays a chart which compares the two.
+
+![chart and options form](CDM-1.JPG)
 
     Public Sub RebuildChart()
         Dim k As Integer, i As Integer, npts As Integer
@@ -105,6 +107,8 @@ This routine retrieves a trial reading from the spectrophotometer (a collection 
         Err.Raise Err.Number
     End Sub
 
+*jump to: [Contents](#contents)*
+
 ## ColorCombo_Change Event Handler
 This event handler for a ComboBox searched the database of historical data for color readings which matched the selected color and then populated a ListBox of matching colors grouped by date.
 
@@ -183,6 +187,8 @@ This event handler for a ComboBox searched the database of historical data for c
         End If
     End Sub
 
+*jump to: [Contents](#contents)*
+
 ## DatesLB_KeyDown Event Handler
 This event handler for a ListBox allowed the user to delete, insert, or rename color standards.
 
@@ -249,8 +255,12 @@ This event handler for a ListBox allowed the user to delete, insert, or rename c
         End If
     End Sub
 
+*jump to: [Contents](#contents)*
+
 ## Create New Standard
-The following two routines are examples of a collection of routines that helped the user create a new color standard. The first routine below takes a collection of many sample spectrophotometer readings and removes the lightest and darkest readings. The second routine below takes values from a Form containing sliders where the user could fine tune the standard by weighting individual readings; it would then normalize the weights for each reading in the standard.
+The following two routines are examples of a collection of routines that helped the user create a new color standard. The first routine below takes a collection of many sample spectrophotometer readings and removes the lightest and darkest readings. The refernce image shows the darkest readings (those represented by a blue dot below the red line) being flagged for removal from the standard. The second routine below takes values from a Form containing sliders where the user could fine tune the standard by weighting individual readings; it would then normalize the weights for each reading in the standard.
+
+![darkest readings being flagged for removal](CDM-2.JPG)
 
     Private Sub UnflagUnweightExtremes()
         Dim white As New Reading
@@ -333,6 +343,8 @@ The following two routines are examples of a collection of routines that helped 
             r2.weight = r.weight
         Next k
     End Sub
+
+*jump to: [Contents](#contents)*
 
 ## Reading Class
 Instances of this class represent a spectrophotometer reading. The class contains a helper function to compute the root mean squares (RMS) in reference to a "nearby" standard reading. Because a standard was a collection of readings, it was necessary to transform each reading in a trial to its nearest reading in the standard before computing any deviation. Therefore, this class also contains several methods to transform a reading to a position where it could best be compared to the standard. Dealing with all of this variation is what set this method of QC'ing parts ahead of other methods. This class has been condensed by removing some of the more mundane methods.
@@ -544,6 +556,8 @@ Instances of this class represent a spectrophotometer reading. The class contain
             Set l = l.offset(1, 0)
         Next k
     End Sub
+
+*jump to: [Contents](#contents)*
 
 ## ReadingSet Class
 Instances of this class represent a collection of spectrophotometer readings such as a standard or a collection of readings used to create a standard. The class contains statistical functions for computing the "average" reading and the standard deviation of the collection about a reference reading such as the average. It also contains helper functions such as locating the "nearest" reading to a reference reading for the purposes of transforming a trial reading to its nearest reading in the standard, as described in [Reading Class](#reading-class). Finally, because it was difficult to get readings from a natural product like wood that were somewhat equally distributed from light to dark, this class contains a function to generate a "Frame" of computed readings for the purpose of filling in gaps in the standard. This class has been condensed by removing some of the more mundane methods.
@@ -820,3 +834,5 @@ Instances of this class represent a collection of spectrophotometer readings suc
         Loop Until kk = Num + 1
         Set Frame = FrameSet
     End Function
+
+*jump to: [Contents](#contents)*
